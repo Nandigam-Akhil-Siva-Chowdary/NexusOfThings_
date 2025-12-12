@@ -1,10 +1,11 @@
 // Event Details and Registration Management
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Nexus of Things website loaded successfully!');
+    
     // Modal elements
     const eventModal = document.getElementById('eventModal');
     const registrationModal = document.getElementById('registrationModal');
     const modalBody = document.getElementById('modal-body');
-    const closeButtons = document.querySelectorAll('.close');
     
     // Event team requirements
     const eventRequirements = {
@@ -14,130 +15,151 @@ document.addEventListener('DOMContentLoaded', function() {
         'Error Erase': { min: 1, max: 2 }
     };
 
-    // View More buttons
-    const viewMoreButtons = document.querySelectorAll('.view-more-btn');
-    
-    viewMoreButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const eventName = this.getAttribute('data-event');
-            loadEventDetails(eventName);
-        });
-    });
-
-    // Close modals
-    closeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            eventModal.style.display = 'none';
-            registrationModal.style.display = 'none';
-        });
-    });
-
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        if (event.target === eventModal) {
-            eventModal.style.display = 'none';
+    // ========== LOADING BUFFER FUNCTIONS ==========
+    function showLoadingBuffer(message = 'Loading...') {
+        const loadingBuffer = document.getElementById('loadingBuffer');
+        const messageElement = loadingBuffer.querySelector('p');
+        
+        if (messageElement && message) {
+            messageElement.textContent = message;
         }
-        if (event.target === registrationModal) {
-            registrationModal.style.display = 'none';
-        }
-    });
-
-    // Load event details from backend
-    function loadEventDetails(eventName) {
-        fetch(`/get-event-details/${eventName}/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    modalBody.innerHTML = `<p>Error: ${data.error}</p>`;
-                } else {
-                    displayEventDetails(data);
-                }
-                eventModal.style.display = 'block';
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                modalBody.innerHTML = '<p>Error loading event details</p>';
-                eventModal.style.display = 'block';
-            });
+        
+        loadingBuffer.style.display = 'flex';
+        loadingBuffer.offsetHeight; // Force reflow
+        loadingBuffer.style.opacity = '1';
     }
 
-// Display event details in modal
-function displayEventDetails(eventData) {
-    const requirements = eventRequirements[eventData.title];
-    
-    // Generate student coordinators HTML
-    let studentCoordinatorsHTML = '';
-    eventData.student_coordinators.forEach((coordinator, index) => {
-        studentCoordinatorsHTML += `
-            <div class="coordinator-card">
-                <h4>Student Coordinator ${index + 1}</h4>
-                <p><strong>Name:</strong> ${coordinator.name}</p>
-                <p><strong>Roll No:</strong> ${coordinator.roll_number}</p>
-                <p><strong>Phone:</strong> ${coordinator.phone}</p>
-            </div>
-        `;
+    function hideLoadingBuffer() {
+        const loadingBuffer = document.getElementById('loadingBuffer');
+        loadingBuffer.style.opacity = '0';
+        
+        setTimeout(() => {
+            loadingBuffer.style.display = 'none';
+        }, 300);
+    }
+
+    // ========== VIEW MORE BUTTONS (with loading buffer) ==========
+    document.querySelectorAll('.view-more-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const eventName = this.getAttribute('data-event');
+            
+            // SHOW LOADING BUFFER
+            showLoadingBuffer('Loading event details...');
+            
+            // Fetch event details from Django view
+            fetch(`/get-event-details/${encodeURIComponent(eventName)}/`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to load event details');
+                    return response.json();
+                })
+                .then(data => {
+                    // HIDE LOADING BUFFER
+                    hideLoadingBuffer();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Display event details
+                    displayEventDetails(data);
+                    
+                    // Show event modal
+                    eventModal.style.display = 'block';
+                })
+                .catch(error => {
+                    // HIDE LOADING BUFFER
+                    hideLoadingBuffer();
+                    console.error('Error:', error);
+                    alert('Failed to load event details. Please try again.');
+                });
+        });
     });
-    
-    modalBody.innerHTML = `
-        <div class="event-details">
-            <h2>${eventData.title}</h2>
-            
-            <div class="event-info-section">
-                <h3>Description</h3>
-                <p>${eventData.description}</p>
-            </div>
-            
-            <div class="event-info-section">
-                <h3>Event Structure</h3>
-                <p>${eventData.rounds_info}</p>
-            </div>
-            
-            <div class="event-info-section">
-                <h3>Rules & Guidelines</h3>
-                <p>${eventData.rules}</p>
-            </div>
-            
-            <div class="coordinator-details">
-                <div class="coordinator-card">
-                    <h4>Faculty Coordinator</h4>
-                    <p><strong>Name:</strong> ${eventData.faculty_coordinator_name}</p>
-                    <p><strong>Designation:</strong> ${eventData.faculty_coordinator_designation}</p>
-                    <p><strong>Phone:</strong> ${eventData.faculty_coordinator_phone}</p>
+
+    // ========== DISPLAY EVENT DETAILS ==========
+    function displayEventDetails(eventData) {
+        const requirements = eventRequirements[eventData.title] || { min: 1, max: 3 };
+        
+        // Generate student coordinators HTML
+        let studentCoordinatorsHTML = '';
+        if (eventData.student_coordinators && Array.isArray(eventData.student_coordinators)) {
+            eventData.student_coordinators.forEach((coordinator, index) => {
+                studentCoordinatorsHTML += `
+                    <div class="coordinator-card">
+                        <h4>Student Coordinator ${index + 1}</h4>
+                        <p><strong>Name:</strong> ${coordinator.name || 'N/A'}</p>
+                        <p><strong>Roll No:</strong> ${coordinator.roll_number || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${coordinator.phone || 'N/A'}</p>
+                    </div>
+                `;
+            });
+        }
+        
+        modalBody.innerHTML = `
+            <div class="event-details">
+                <h2>${eventData.title}</h2>
+                
+                <div class="event-info-section">
+                    <h3>Description</h3>
+                    <p>${eventData.description || 'No description available.'}</p>
                 </div>
                 
-                ${studentCoordinatorsHTML}
+                ${eventData.rounds_info ? `<div class="event-info-section">
+                    <h3>Event Structure</h3>
+                    <p>${eventData.rounds_info}</p>
+                </div>` : ''}
+                
+                ${eventData.rules ? `<div class="event-info-section">
+                    <h3>Rules & Guidelines</h3>
+                    <p>${eventData.rules}</p>
+                </div>` : ''}
+                
+                <div class="coordinator-details">
+                    <div class="coordinator-card">
+                        <h4>Faculty Coordinator</h4>
+                        <p><strong>Name:</strong> ${eventData.faculty_coordinator_name || 'N/A'}</p>
+                        <p><strong>Designation:</strong> ${eventData.faculty_coordinator_designation || 'N/A'}</p>
+                        <p><strong>Phone:</strong> ${eventData.faculty_coordinator_phone || 'N/A'}</p>
+                    </div>
+                    
+                    ${studentCoordinatorsHTML}
+                </div>
+                
+                <div class="event-info-section">
+                    <h3>Team Requirements</h3>
+                    <p>Team Size: ${requirements.min}-${requirements.max} members</p>
+                </div>
+                
+                <div class="event-info-section">
+                    <h3>Prizes</h3>
+                    <p>1st Prize: ₹3000 | 2nd Prize: ₹2000 | 3rd Prize: ₹1000</p>
+                </div>
+                
+                <button class="btn btn-primary register-btn" data-event="${eventData.title}">
+                    Register Now
+                </button>
             </div>
-            
-            <div class="event-info-section">
-                <h3>Team Requirements</h3>
-                <p>Team Size: ${requirements.min}-${requirements.max} members</p>
-            </div>
-            
-            <div class="event-info-section">
-                <h3>Prizes</h3>
-                <p>1st Prize: ₹3000 | 2nd Prize: ₹2000 | 3rd Prize: ₹1000</p>
-            </div>
-            
-            <button class="btn btn-primary register-btn" data-event="${eventData.title}">
-                Register Now
-            </button>
-        </div>
-    `;
+        `;
 
-    // Add event listener to register button
-    const registerBtn = modalBody.querySelector('.register-btn');
-    registerBtn.addEventListener('click', function() {
-        openRegistrationForm(eventData.title);
-    });
-}
+        // Add event listener to register button
+        const registerBtn = modalBody.querySelector('.register-btn');
+        if (registerBtn) {
+            // Remove any existing event listener first
+            registerBtn.replaceWith(registerBtn.cloneNode(true));
+            
+            // Add new event listener
+            modalBody.querySelector('.register-btn').addEventListener('click', function() {
+                openRegistrationForm(eventData.title);
+            });
+        }
+    }
 
-    // Open registration form
+    // ========== OPEN REGISTRATION FORM ==========
     function openRegistrationForm(eventName) {
         document.getElementById('registration-title').textContent = `Register for ${eventName}`;
         document.getElementById('event-name').value = eventName;
         
         // Generate teammate fields based on event requirements
-        const requirements = eventRequirements[eventName];
+        const requirements = eventRequirements[eventName] || { min: 1, max: 3 };
         const teammateFields = document.getElementById('teammate-fields');
         teammateFields.innerHTML = '';
         
@@ -155,61 +177,140 @@ function displayEventDetails(eventData) {
         registrationModal.style.display = 'block';
     }
 
-    // Handle registration form submission
+    // ========== REGISTRATION FORM SUBMISSION (Single handler) ==========
     const registrationForm = document.getElementById('registration-form');
-    registrationForm.addEventListener('submit', function(e) {
+    
+    // Clone and replace form to remove any existing event listeners
+    const newForm = registrationForm.cloneNode(true);
+    registrationForm.parentNode.replaceChild(newForm, registrationForm);
+    
+    // Add single event listener to the new form
+    document.getElementById('registration-form').addEventListener('submit', function(e) {
         e.preventDefault();
+        e.stopPropagation(); // Prevent event bubbling
         
+        // SHOW LOADING BUFFER
+        showLoadingBuffer('Processing registration...');
+        
+        // Collect form data
         const formData = new FormData(this);
         
+        // Send to Django backend
         fetch('/register-participant/', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(result => {
+            // HIDE LOADING BUFFER
+            hideLoadingBuffer();
+            
+            if (result.success) {
+                // Close modal and reset form
                 registrationModal.style.display = 'none';
-                registrationForm.reset();
+                this.reset();
+                
+                // Show success message with team code
+                alert(`Registration successful!\n\nYour Team Code: ${result.team_code}\nPlease save this code for future reference.`);
             } else {
-                alert('Registration failed: ' + data.message);
+                alert('Registration failed: ' + (result.message || 'Unknown error'));
             }
         })
         .catch(error => {
+            // HIDE LOADING BUFFER
+            hideLoadingBuffer();
             console.error('Error:', error);
-            // alert('Registration failed. Please try again.');
+            alert('Registration failed. Please check your connection and try again.');
+        });
+        
+        // Prevent default form submission
+        return false;
+    });
+
+    // ========== MODAL CLOSE FUNCTIONALITY ==========
+    const closeButtons = document.querySelectorAll('.close');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            eventModal.style.display = 'none';
+            registrationModal.style.display = 'none';
         });
     });
 
-    // Smooth scrolling for navigation links
-    document.querySelectorAll('nav a').forEach(anchor => {
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === eventModal || event.target === registrationModal) {
+            eventModal.style.display = 'none';
+            registrationModal.style.display = 'none';
+        }
+    });
+
+    // ========== SMOOTH SCROLLING ==========
+    document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
             const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
             const targetElement = document.querySelector(targetId);
             if (targetElement) {
-                const headerHeight = document.querySelector('header').offsetHeight;
+                // Remove active class from all links
+                document.querySelectorAll('nav a').forEach(link => {
+                    link.classList.remove('active');
+                });
+                
+                // Add active class to clicked link
+                this.classList.add('active');
+                
+                // Calculate scroll position
+                const header = document.querySelector('header');
+                const headerHeight = header ? header.offsetHeight : 0;
                 const targetPosition = targetElement.offsetTop - headerHeight;
                 
+                // Smooth scroll to target
                 window.scrollTo({
                     top: targetPosition,
                     behavior: 'smooth'
                 });
-                
-                // Update active navigation link
-                document.querySelectorAll('nav a').forEach(link => {
-                    link.classList.remove('active');
-                });
-                this.classList.add('active');
             }
         });
     });
 
-    // Header background on scroll
+    // ========== UPDATE ACTIVE NAV LINK ON SCROLL ==========
+    function updateActiveNavLink() {
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('nav a[href^="#"]');
+        
+        let currentSection = '';
+        const scrollPosition = window.scrollY + 100; // Add offset
+        
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            const sectionHeight = section.clientHeight;
+            
+            if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                currentSection = section.getAttribute('id');
+            }
+        });
+        
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const href = link.getAttribute('href');
+            if (href === `#${currentSection}`) {
+                link.classList.add('active');
+            }
+        });
+    }
+
+    // ========== HEADER BACKGROUND ON SCROLL ==========
     window.addEventListener('scroll', function() {
         const header = document.querySelector('header');
         if (window.scrollY > 100) {
@@ -220,218 +321,10 @@ function displayEventDetails(eventData) {
             header.style.backdropFilter = 'none';
         }
         
-        // Update active navigation link based on scroll position
+        // Update active navigation link
         updateActiveNavLink();
     });
 
-    // Update active navigation link based on scroll position
-    function updateActiveNavLink() {
-        const sections = document.querySelectorAll('section');
-        const navLinks = document.querySelectorAll('nav a');
-        
-        let currentSection = '';
-        
-        sections.forEach(section => {
-            const sectionTop = section.offsetTop;
-            const sectionHeight = section.clientHeight;
-            const headerHeight = document.querySelector('header').offsetHeight;
-            
-            if (window.scrollY >= sectionTop - headerHeight - 50 && 
-                window.scrollY < sectionTop + sectionHeight - headerHeight) {
-                currentSection = section.getAttribute('id');
-            }
-        });
-        
-        navLinks.forEach(link => {
-            link.classList.remove('active');
-            if (link.getAttribute('href') === `#${currentSection}`) {
-                link.classList.add('active');
-            }
-        });
-    }
-
     // Initialize active nav link
     updateActiveNavLink();
-});
-
-
-
-//;loading buffer
-
-// ========== LOADING BUFFER FUNCTIONS (ONLY ADDITION) ==========
-function showLoadingBuffer(message = 'Loading...') {
-    const loadingBuffer = document.getElementById('loadingBuffer');
-    const messageElement = loadingBuffer.querySelector('p');
-    
-    if (messageElement && message) {
-        messageElement.textContent = message;
-    }
-    
-    loadingBuffer.style.display = 'flex';
-    // Force reflow for animation
-    loadingBuffer.offsetHeight;
-    loadingBuffer.style.opacity = '1';
-}
-
-function hideLoadingBuffer() {
-    const loadingBuffer = document.getElementById('loadingBuffer');
-    loadingBuffer.style.opacity = '0';
-    
-    setTimeout(() => {
-        loadingBuffer.style.display = 'none';
-    }, 300);
-}
-
-// ========== YOUR ORIGINAL CODE WITH LOADING BUFFER ADDED ==========
-// Event Details Modal - MODIFIED TO ADD LOADING BUFFER
-document.querySelectorAll('.view-more-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const eventName = this.getAttribute('data-event');
-        
-        // SHOW LOADING BUFFER
-        showLoadingBuffer('Loading event details...');
-        
-        // Fetch event details from Django view
-        fetch(`/get-event-details/${encodeURIComponent(eventName)}/`)
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to load event details');
-                return response.json();
-            })
-            .then(data => {
-                // HIDE LOADING BUFFER
-                hideLoadingBuffer();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-                
-                // Your original modal population code
-                populateEventModal(data, eventName);
-                
-                // Show event modal
-                document.getElementById('eventModal').style.display = 'block';
-            })
-            .catch(error => {
-                // HIDE LOADING BUFFER
-                hideLoadingBuffer();
-                console.error('Error:', error);
-                alert('Failed to load event details. Please try again.');
-            });
-    });
-});
-
-// Populate Event Modal - YOUR ORIGINAL FUNCTION
-function populateEventModal(eventData, eventName) {
-    const modalBody = document.getElementById('modal-body');
-    
-    // Build student coordinators HTML
-    let studentCoordsHTML = '';
-    if (eventData.student_coordinators && eventData.student_coordinators.length > 0) {
-        studentCoordsHTML = '<h4>Student Coordinators:</h4><ul>';
-        eventData.student_coordinators.forEach(coord => {
-            studentCoordsHTML += `<li>${coord.name} (${coord.roll_number}) - ${coord.phone}</li>`;
-        });
-        studentCoordsHTML += '</ul>';
-    }
-    
-    modalBody.innerHTML = `
-        <h3>${eventData.title || eventName}</h3>
-        <p><strong>Description:</strong> ${eventData.description || 'No description available.'}</p>
-        ${eventData.rounds_info ? `<p><strong>Rounds Info:</strong> ${eventData.rounds_info}</p>` : ''}
-        ${eventData.rules ? `<p><strong>Rules:</strong> ${eventData.rules}</p>` : ''}
-        ${eventData.faculty_coordinator_name ? `<p><strong>Faculty Coordinator:</strong> ${eventData.faculty_coordinator_name} (${eventData.faculty_coordinator_designation || ''}) - ${eventData.faculty_coordinator_phone || ''}</p>` : ''}
-        ${studentCoordsHTML}
-        
-        <div style="margin-top: 30px;">
-            <button class="btn btn-primary" onclick="openRegistration('${eventName}')">Register Now</button>
-        </div>
-    `;
-}
-
-// Open Registration Modal - YOUR ORIGINAL FUNCTION
-function openRegistration(eventName) {
-    document.getElementById('eventModal').style.display = 'none';
-    document.getElementById('event-name').value = eventName;
-    document.getElementById('registration-title').textContent = `Register for ${eventName}`;
-    document.getElementById('registrationModal').style.display = 'block';
-}
-
-// Registration Form Submission - MODIFIED TO ADD LOADING BUFFER
-// ========== REGISTRATION FORM SUBMISSION ==========
-document.getElementById('registration-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // SHOW LOADING BUFFER
-    showLoadingBuffer('Processing registration...');
-    
-    // Collect form data
-    const formData = new FormData(this);
-    
-    // Send to Django backend
-    fetch('/register-participant/', {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.json())
-    .then(result => {
-        // HIDE LOADING BUFFER
-        hideLoadingBuffer();
-        
-        if (result.success) {
-            // Close modal and reset form
-            document.getElementById('registrationModal').style.display = 'none';
-            this.reset();
-            
-            // Show success message with team code
-            alert(`Registration successful!\n\nYour Team Code: ${result.team_code}\nPlease save this code for future reference.`);
-        } else {
-            alert('Registration failed: ' + (result.message || 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        // HIDE LOADING BUFFER
-        hideLoadingBuffer();
-        console.error('Error:', error);
-        alert('Registration failed. Please check your connection and try again.');
-    });
-});
-// ========== YOUR ORIGINAL MODAL CODE ==========
-// Modal Close Functionality
-document.querySelectorAll('.modal .close').forEach(closeBtn => {
-    closeBtn.addEventListener('click', function() {
-        this.closest('.modal').style.display = 'none';
-    });
-});
-
-// Close modal when clicking outside
-window.addEventListener('click', function(event) {
-    if (event.target.classList.contains('modal')) {
-        event.target.style.display = 'none';
-    }
-});
-
-// Smooth scrolling for navigation links
-document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href');
-        if (targetId === '#') return;
-        
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-            targetElement.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Nexus of Things website loaded successfully!');
 });
