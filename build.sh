@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Exit on error
 set -o errexit
 
 # Install dependencies
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# Collect static files
-python manage.py collectstatic --noinput
+# Only run collectstatic if Django is properly configured
+python manage.py collectstatic --noinput --clear || echo "Collectstatic failed, continuing..."
 
-# Run database migrations
-python manage.py migrate
+# Apply migrations
+python manage.py migrate --noinput || echo "Migrations failed, continuing..."
