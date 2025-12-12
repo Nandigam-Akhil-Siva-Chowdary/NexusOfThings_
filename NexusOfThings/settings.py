@@ -18,6 +18,7 @@ ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'nexusofthings.up.railway.app',
+    '*',
 ]
 
 # Add your custom domain if you have one
@@ -110,8 +111,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-
-# WhiteNoise configuration for serving static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
