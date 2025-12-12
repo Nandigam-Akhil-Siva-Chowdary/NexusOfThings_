@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nexus of Things - RVRJCCE</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Loading Buffer (initially hidden) -->
+    <div id="loadingBuffer" class="loading-buffer" style="display: none;">
+      <div class="loading-spinner"></div>
+      <p>Loading Data...</p>
+    </div>
+
+    <!-- Header -->
+    <header>
+      <div class="container">
+        <div class="logo">
+          <img
+            src="{% static 'images/college-logo.png' %}"
+            alt="RVRJCCE Logo"
+            onerror="this.style.display='none'"
+          />
+          <div class="college-info">
+            <h1>RVR & JC College of Engineering</h1>
+            <p>Department of CSE - IoT</p>
+          </div>
+        </div>
+        <nav>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#events">Events</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Home Section -->
+    <section id="home" class="home-section">
+      <!-- Background Video -->
+      <div class="video-container">
+        <video autoplay muted loop id="bg-video">
+          <source
+            src="{% static 'videos/iot-background.mp4' %}"
+            type="video/mp4"
+          />
+          <!-- Fallback image if video doesn't load -->
+          <img
+            src="{% static 'images/iot-background.jpg' %}"
+            alt="IoT Background"
+            style="width: 100%; height: 100%; object-fit: cover"
+          />
+        </video>
+        <div class="video-overlay"></div>
+      </div>
+
+      <!-- Hero Content -->
+      <div class="hero">
+        <div class="container">
+          <div class="hero-content">
+            <h1 class="main-title">NEXUS OF THINGS</h1>
+            <p class="subtitle">Where Innovation Meets Technology</p>
+            <p class="event-dates">December 26-27, 2025 | Colorido Fest</p>
+            <div class="cta-buttons">
+              <a href="#events" class="btn btn-primary">View Events</a>
+              <a href="#about" class="btn btn-secondary">Learn More</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+      <div class="container">
+        <div class="about-content">
+          <div class="about-image">
+            <img
+              src="{% static 'images/poster.png' %}"
+              alt="Nexus of Things Poster"
+              onerror="this.src='https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80'"
+            />
+          </div>
+          <div class="about-text">
+            <h2>About Nexus of Things</h2>
+            <p>
+              "Nexus of Things" is a premier technical fest organized by the
+              CSE-IoT Department of RVR & JC College of Engineering as part of
+              Colorido 2025. This event brings together the brightest minds to
+              showcase their technical prowess and innovative thinking.
+            </p>
+
+            <h3>Event Overview</h3>
+            <p>
+              Spanning two days on December 26-27, 2025, Nexus of Things
+              features four challenging technical events designed to test
+              participants' skills in web development, IoT prototyping, creative
+              problem-solving, and debugging.
+            </p>
+
+            <h3>What to Expect</h3>
+            <ul>
+              <li>Hands-on technical challenges</li>
+              <li>Real-world problem statements</li>
+              <li>Exciting prizes and recognition</li>
+              <li>Learning and skill development opportunities</li>
+            </ul>
+
+            <h3>Why Participate?</h3>
+            <p>
+              Nexus of Things provides an excellent platform for students to
+              demonstrate their technical abilities, teamwork, and innovative
+              approach to solving real-world problems. It's not just a
+              competition, but a learning experience that bridges the gap
+              between academic knowledge and practical implementation.
+            </p>
+
+            <div class="event-stats">
+              <div class="stat">
+                <h4>4</h4>
+                <p>Technical Events</p>
+              </div>
+              <div class="stat">
+                <h4>2</h4>
+                <p>Days</p>
+              </div>
+              <div class="stat">
+                <h4>₹24000</h4>
+                <p>Total Prize Money</p>
+              </div>
+              <div class="stat">
+                <h4>Open</h4>
+                <p>For All Colleges</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events" class="events-section">
+      <div class="container">
+        <h2 style="font-size: 3.5rem;">Technical Events</h2>
+        <p class="section-subtitle">
+          Choose your challenge and showcase your skills
+        </p>
+
+        <div class="events-container">
+          {% for event in events %}
+          <div class="event-item">
+            <div class="event-header">
+              <h3>{{ event.name }}</h3>
+              <p>{{ event.description|truncatewords:20 }}</p>
+            </div>
+            <button class="view-more-btn" data-event="{{ event.name }}">
+              View Details & Register
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
+      <div class="container">
+        <h2 style="font-size: 3.5rem; ">Contact Us</h2>
+        <p class="section-subtitle">Get in touch with our event coordinators</p>
+
+        <div class="coordinators-container">
+          <div class="coordinator-type">
+            <h3>Faculty Coordinators</h3>
+            <div class="coordinator-cards">
+              {% for coordinator in faculty_coordinators %}
+              <div class="coordinator-card">
+                <div class="coordinator-info">
+                  <h4>{{ coordinator.name }}</h4>
+                  <p class="designation">{{ coordinator.designation }}</p>
+                  <p class="contact-detail">
+                    <i class="fas fa-phone"></i>
+                    {{ coordinator.phone }}
+                  </p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="coordinator-type">
+            <h3>Student Coordinators</h3>
+            <div class="coordinator-cards">
+              {% for coordinator in student_coordinators %}
+              <div class="coordinator-card">
+                <div class="coordinator-info">
+                  <h4>{{ coordinator.name }}</h4>
+                  <p class="designation">Roll No: {{ coordinator.roll }}</p>
+                  <p class="contact-detail">
+                    <i class="fas fa-phone"></i>
+                    {{ coordinator.phone }}
+                  </p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <div class="map-section">
+            <h3>Find Us</h3>
+            <div class="map-container" style="border-radius: 0%; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); max-height: 40vh; max-width: 100%;">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3830.325871861731!2d80.3214493749082!3d16.255060584451684!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a4a76e740000001%3A0xc41c8498715c6da0!2sR.V.R.%20%26%20J.C.College%20of%20Engineering!5e0!3m2!1sen!2sin!4v1763315787282!5m2!1sen!2sin"
+                width="400"
+                height="250"
+                style="border: 0 ; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); max-width: 100%; max-height: 100%;"
+                allowfullscreen=""
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+          </div>
+          <div class="quick-links">
+            <h3>Quick Links</h3>
+            <ul>
+              <li><a href="#home">Home</a></li>
+              <li><a href="#about">About Event</a></li>
+              <li><a href="#events">Events</a></li>
+              <li><a href="#contact">Contact Us</a></li>
+            </ul>
+          </div>
+          <div class="contact-info">
+            <h3>Contact Info</h3>
+            <p>
+              <i class="fas fa-map-marker-alt"></i> RVR & JC College of
+              Engineering, Guntur
+            </p>
+            <p><i class="fas fa-phone"></i> +91 8977782094</p>
+            <p><i class="fas fa-envelope"></i> rvr.cseiot2024@gmail.com</p>
+          </div>
+        </div>
+        <div class="copyright">
+          <p>
+            &copy; 2025 RVR & JC College of Engineering - CSE IoT Department.
+            All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Event Details Modal -->
+    <div id="eventModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="modal-body">
+          <!-- Content will be loaded dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div id="registrationModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="registration-title">Register for Event</h2>
+        <form id="registration-form">
+          {% csrf_token %}
+          <input type="hidden" id="event-name" name="event" />
+
+          <div class="form-group">
+            <label for="team-name">Team Name *</label>
+            <input type="text" id="team-name" name="team_name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="team-lead-name">Team Lead Name *</label>
+            <input
+              type="text"
+              id="team-lead-name"
+              name="team_lead_name"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="college-name">College Name *</label>
+            <input type="text" id="college-name" name="college_name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="phone-number">Phone Number *</label>
+            <input type="tel" id="phone-number" name="phone_number" required />
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <!-- Dynamic teammate fields based on event -->
+          <div id="teammate-fields">
+            <!-- Will be populated based on event requirements -->
+          </div>
+
+          <button type="submit" class="btn btn-primary">Register Now</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="{% static 'js/script.js' %}"></script>
+  </body>
+</html>
