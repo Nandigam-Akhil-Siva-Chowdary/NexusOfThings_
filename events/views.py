@@ -24,7 +24,7 @@ def home(request):
     student_coordinators = [
         {
             'name': 'SK. Hussen',
-            'roll': 'Y23CO057',
+            'roll': 'Y22CO057',
             'phone': '+91 9014962753',
         },
         {
