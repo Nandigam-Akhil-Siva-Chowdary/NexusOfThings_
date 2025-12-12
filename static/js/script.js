@@ -357,6 +357,7 @@ function openRegistration(eventName) {
 }
 
 // Registration Form Submission - MODIFIED TO ADD LOADING BUFFER
+// ========== REGISTRATION FORM SUBMISSION ==========
 document.getElementById('registration-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -381,26 +382,23 @@ document.getElementById('registration-form').addEventListener('submit', function
         hideLoadingBuffer();
         
         if (result.success) {
-            alert(result.message);
             // Close modal and reset form
             document.getElementById('registrationModal').style.display = 'none';
             this.reset();
-            // Show team code
-            if (result.team_code) {
-                alert(`Your Team Code: ${result.team_code}\nPlease save this code for future reference.`);
-            }
+            
+            // Show success message with team code
+            alert(`Registration successful!\n\nYour Team Code: ${result.team_code}\nPlease save this code for future reference.`);
         } else {
-            // alert('Registration failed: ' + (result.message || 'Unknown error'));
+            alert('Registration failed: ' + (result.message || 'Unknown error'));
         }
     })
     .catch(error => {
         // HIDE LOADING BUFFER
         hideLoadingBuffer();
         console.error('Error:', error);
-        // alert('Registration failed. Please check your connection and try again.');
+        alert('Registration failed. Please check your connection and try again.');
     });
 });
-
 // ========== YOUR ORIGINAL MODAL CODE ==========
 // Modal Close Functionality
 document.querySelectorAll('.modal .close').forEach(closeBtn => {
