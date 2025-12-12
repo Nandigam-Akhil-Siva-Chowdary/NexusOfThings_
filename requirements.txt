@@ -1,8 +1,10 @@
-Django==3.2.19  # Use LTS version for better compatibility
+# Replace your requirements.txt with this:
+Django==3.2.19
 djongo==1.3.6
-pymongo==3.12.3
+pymongo==4.5.0
 dnspython==2.4.2
 gunicorn==20.1.0
 whitenoise==6.5.0
-psycopg2-binary==2.9.9  # Sometimes needed for compatibility
+sqlparse>=0.4.3  # Fix the version conflict
+dj-database-url==2.0.0  # Add this missing package
 pytz==2023.3
