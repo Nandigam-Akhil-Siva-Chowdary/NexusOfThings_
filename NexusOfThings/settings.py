@@ -72,12 +72,11 @@ WSGI_APPLICATION = 'NexusOfThings.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': os.environ.get('MONGODB_DATABASE', 'NexusOfThings'),
-        'ENFORCE_SCHEMA': False,
+        'NAME': os.getenv('MONGODB_NAME', 'NexusOfThings'),
         'CLIENT': {
-            'host': os.environ.get('MONGODB_URI', 'mongodb://localhost:27017/'),
-            'username': os.environ.get('MONGODB_USER', ''),
-            'password': os.environ.get('MONGODB_PASSWORD', ''),
+            'host': os.getenv('MONGODB_URI', 'mongodb+srv://Akhil2310:Hasi2310@nexora.j9i1s4f.mongodb.net/'),
+            'username': os.getenv('MONGODB_USER', 'Akhil2310'),
+            'password': os.getenv('MONGODB_PASS', 'Hasi2310'),
             'authSource': 'admin',
             'authMechanism': 'SCRAM-SHA-1',
         }
